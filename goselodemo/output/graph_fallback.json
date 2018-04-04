@@ -1,0 +1,1118 @@
+{
+  "converted_at": 1518592104,
+  "kernel_source": "\ndnn_fallback_kernel={\n\n\nconvolution_2d: function(input_arrays, output_arrays, option) {\nvar x = input_arrays[0];\nvar w = input_arrays[1];\nvar y = output_arrays[0];\nvar n = option.n | 0;\nvar in_spatial = option.in_spatial;\nvar out_spatial = option.out_spatial;\nvar out_size = option.out_size | 0;\nvar in_size = option.in_size | 0;\nvar padding = option.padding;\nvar stride = option.stride;\nvar ksize = option.ksize;\nvar dilation_rate = option.dilation_rate;\nvar strides_x = option.strides_x;\nvar strides_w = option.strides_w;\nvar strides_y = option.strides_y;\n\nvar get_x = function(n_, y_, x_, c_) {\n  y_ -= padding[0];\n  x_ -= padding[1];\n  if (y_ < 0 || y_ >= in_spatial[0] || x_ < 0 || x_ >= in_spatial[1]) {\n    return 0.0;\n  }\n  var idx = n_ * strides_x[0] + y_ * strides_x[1] + x_ * strides_x[2] + c_ * strides_x[3];\n  return x[idx];\n};\n\nvar get_w = function(ky_, kx_, in_c, out_c) {\n  var idx = out_c * strides_w[0] + ky_ * strides_w[1] + kx_ * strides_w[2] + in_c * strides_w[3];\n  return w[idx];\n};\n\nvar set_y = function(n_, y_, x_, c_, val) {\n  var idx = n_ * strides_y[0] + y_ * strides_y[1] + x_ * strides_y[2] + c_ * strides_y[3];\n  y[idx] = val;\n};\n\nfor (var batch = 0; batch < n; batch++) {\n  for (var oy = 0; oy < out_spatial[0]; oy++) {\n    for (var ox = 0; ox < out_spatial[1]; ox++) {\n      for (var oc = 0; oc < out_size; oc++) {\n        var sum = 0.0;\n        for (var ky = 0; ky < ksize[0]; ky++) {\n          for (var kx = 0; kx < ksize[1]; kx++) {\n            for (var ic = 0; ic < in_size; ic++) {\n              sum += get_x(batch, oy * stride[0] + ky * dilation_rate[0],\n                           ox * stride[1] + kx * dilation_rate[1],\n                           ic) *\n                     get_w(ky, kx, ic, oc);\n            }\n          }\n        }\n        set_y(batch, oy, ox, oc, sum);\n      }\n    }\n  }\n}\n\n},\n\n\n\nelementwiseadd_f88af157b6c9f620a9e433f4000a32858a55b8fef457d716eae1f048: function(input_arrays, output_arrays, option) {\n    var v1 = input_arrays[0];\n    var v2 = input_arrays[1];\n    var v3 = input_arrays[2];\n    var v4 = option['7'];\n    var v5 = option['9'];\n    var D0 = option['11'];\n    var D1 = option['13'];\n    var d0;\n    for (d0 = ((1 > 8) ? (0 % (1 / 8)) : 0); d0 < D0; d0 += ((1 > 8) ? (1 / 8) : 1)) {\n        var v6 = v1[d0];\n        var d1;\n        for (d1 = ((1 > 8) ? (0 / (1 / 8)) : 0); d1 < D1; d1 += ((1 > 8) ? 8 : 1)) {\n            var v7 = v2[d0*v4 + d1];\n            var v8;\n            (function(){\n                v8 = v7 + v6;\n            })();\n            v3[d0*v5 + d1] = v8;\n        }\n    }\n},\n\nrelu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1: function(input_arrays, output_arrays, option) {\n    var v1 = input_arrays[0];\n    var v2 = input_arrays[1];\n    var D0 = option['5'];\n    var d0;\n    for (d0 = 0; d0 < D0; d0 += 1) {\n        var v3 = v1[d0];\n        var v4;\n        (function(){\n            v4 = v3 > 0 ? v3 : 0;\n        })();\n        v2[d0] = v4;\n    }\n},\n\nlocal_response_normalization: function(input_arrays, output_arrays, option) {\nvar x = input_arrays[0];\nvar y = output_arrays[0];\nvar n = option.n | 0;\nvar out_spatial = option.out_spatial;\nvar out_size = option.out_size | 0;\nvar p_half_n = option.p_half_n | 0;\nvar p_k = +option.p_k;\nvar p_alpha = +option.p_alpha;\nvar p_minus_beta = +option.p_minus_beta;\nvar strides_x = option.strides_x;\nvar strides_y = option.strides_y;\n\nvar get_x = function(n_, y_, x_, c_) {\n  var idx = n_ * strides_x[0] + y_ * strides_x[1] + x_ * strides_x[2] + c_ * strides_x[3];\n  return x[idx];\n};\n\nvar set_y = function(n_, y_, x_, c_, val) {\n  var idx = n_ * strides_y[0] + y_ * strides_y[1] + x_ * strides_y[2] + c_ * strides_y[3];\n  y[idx] = val;\n};\n\nfor (var batch = 0; batch < n; batch++) {\n  for (var oy = 0; oy < out_spatial[0]; oy++) {\n    for (var ox = 0; ox < out_spatial[1]; ox++) {\n      for (var oc = 0; oc < out_size; oc++) {\n        var ch_low = oc - p_half_n;\n        if (ch_low < 0) {\n          ch_low = 0;\n        }\n        var ch_high = oc + p_half_n + 1;\n        if (ch_high > out_size) {\n          ch_high = out_size;\n        }\n\n        var sq_sum = 0.0;\n        for (var ic = ch_low; ic < ch_high; ic++) {\n          var val = get_x(batch, oy, ox, ic);\n          sq_sum += val * val;\n        }\n\n        var scale = Math.pow(sq_sum * p_alpha + p_k, p_minus_beta);\n        var ret = get_x(batch, oy, ox, oc) * scale;\n        set_y(batch, oy, ox, oc, ret);\n      }\n    }\n  }\n}\n\n},\n\n\n\nmax_pooling_2d: function(input_arrays, output_arrays, option) {\nvar x = input_arrays[0];\nvar y = output_arrays[0];\nvar n = option.n | 0;\nvar in_spatial = option.in_spatial;\nvar out_spatial = option.out_spatial;\nvar out_size = option.out_size | 0;\nvar in_size = option.in_size | 0;\nvar padding = option.padding;\nvar stride = option.stride;\nvar ksize = option.ksize;\nvar strides_x = option.strides_x;\nvar strides_y = option.strides_y;\n\nvar get_x = function(n_, y_, x_, c_) {\n  y_ -= padding[0];\n  x_ -= padding[1];\n  if (y_ < 0 || y_ >= in_spatial[0] || x_ < 0 || x_ >= in_spatial[1]) {\n    return -Infinity;\n  }\n  var idx = n_ * strides_x[0] + y_ * strides_x[1] + x_ * strides_x[2] + c_ * strides_x[3];\n  return x[idx];\n};\n\nvar set_y = function(n_, y_, x_, c_, val) {\n  var idx = n_ * strides_y[0] + y_ * strides_y[1] + x_ * strides_y[2] + c_ * strides_y[3];\n  y[idx] = val;\n};\n\nfor (var batch = 0; batch < n; batch++) {\n  for (var oy = 0; oy < out_spatial[0]; oy++) {\n    for (var ox = 0; ox < out_spatial[1]; ox++) {\n      for (var oc = 0; oc < out_size; oc++) {\n        var window_max = -Infinity;\n        for (var ky = 0; ky < ksize[0]; ky++) {\n          for (var kx = 0; kx < ksize[1]; kx++) {\n            var val = get_x(batch, oy * stride[0] + ky, ox * stride[1] + kx, oc);\n            if (val > window_max) {\n              window_max = val;\n            }\n          }\n        }\n        set_y(batch, oy, ox, oc, window_max);\n      }\n    }\n  }\n}\n\n},\n\n\n\ntensordot: function(input_arrays, output_arrays, option) {\nvar A = input_arrays[0];\nvar B = input_arrays[1];\nvar C = output_arrays[0];\n\nvar index2pos = function(index, stride, shape) {\n    var i = 0, pos = [];\n    for (i = 0; i < stride.length; i++) pos[i] = Math.floor(index / stride[i]) % shape[i];\n    return pos;\n};\n\nvar pos2index = function(pos, stride) {\n    var i = 0, index = 0;\n    for (i = 0; i < stride.length; i++) index += pos[i] * stride[i];\n    return index;\n};\n\nvar c_index, c_pos;\nvar a_base_index, a_offset;\nvar b_base_index, b_offset;\nvar reduction_index;\nvar sum = 0;\nfor (c_index = 0; c_index < C.length; c_index++) {\n    c_pos = index2pos(c_index, option.stride_C, option.shape_C);\n    a_base_index = pos2index(c_pos, option.stride_A_for_C_axes);\n    b_base_index = pos2index(c_pos, option.stride_B_for_C_axes);\n\n    sum = 0;\n    for (reduction_index = 0; reduction_index < option.reduction_size; reduction_index++) {\n        a_offset = pos2index(index2pos(reduction_index, option.stride_A_reduced_axes, option.shape_A_reduced_axes), option.stride_A_reduced_axes_for_whole);\n        b_offset = pos2index(index2pos(reduction_index, option.stride_B_reduced_axes, option.shape_B_reduced_axes), option.stride_B_reduced_axes_for_whole);\n\n        sum += A[a_base_index + a_offset] * B[b_base_index + b_offset];\n    }\n    C[c_index] = sum;\n}\n\n},\n\n\n\n\nelementwiseadd_a390ad2e078fc68ac251d2f594dc0f96834a1e57429714605dbf3a02: function(input_arrays, output_arrays, option) {\n    var v1 = input_arrays[0];\n    var v2 = input_arrays[1];\n    var v3 = input_arrays[2];\n    var D0 = option['7'];\n    var d0;\n    for (d0 = 0; d0 < D0; d0 += 1) {\n        var v4 = v1[d0];\n        var v5 = v2[d0];\n        var v6;\n        (function(){\n            v6 = v5 + v4;\n        })();\n        v3[d0] = v6;\n    }\n},\n\nsoftmax: function(input_arrays, output_arrays, option) {\nvar x = input_arrays[0];\nvar y = output_arrays[0];\nvar N = option.N | 0;\nvar C = option.C | 0;\n\nfor (var n = 0; n < N; n++) {\n    var set_max = x[n * C];\n    for (var c = 0; c < C; c++) {\n        var val = x[n * C + c];\n        if (val > set_max) {\n            set_max = val;\n        }\n    }\n\n    var sum_exp = 0.0;\n    for (var c = 0; c < C; c++) {\n        var val = x[n * C + c];\n        var exp_x = Math.exp(val - set_max);\n        sum_exp += exp_x;\n        y[n * C + c] = exp_x;\n    }\n\n    for (var c = 0; c < C; c++) {\n        y[n * C + c] /= sum_exp;\n    }\n}\n},\n\n\n\n};\n",
+  "exec_infos": [
+    {
+      "entry_func_name": "convolution_2d",
+      "inputs": [
+        "a119",
+        "a103"
+      ],
+      "outputs": [
+        "a121"
+      ],
+      "call_option": {
+        "in_spatial": [
+          224,
+          224
+        ],
+        "n": 1,
+        "out_size": 96,
+        "in_size": 6,
+        "out_spatial": [
+          54,
+          54
+        ],
+        "strides_x": [
+          301056,
+          224,
+          1,
+          50176
+        ],
+        "strides_w": [
+          726,
+          11,
+          1,
+          121
+        ],
+        "strides_y": [
+          279936,
+          54,
+          1,
+          2916
+        ],
+        "padding": [
+          0,
+          0
+        ],
+        "stride": [
+          4,
+          4
+        ],
+        "ksize": [
+          11,
+          11
+        ],
+        "dilation_rate": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_f88af157b6c9f620a9e433f4000a32858a55b8fef457d716eae1f048",
+      "inputs": [
+        "a104",
+        "a121",
+        "a122"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 2916,
+        "9": 2916,
+        "11": 96,
+        "13": 2916
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a122",
+        "a123"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 279936
+      }
+    },
+    {
+      "entry_func_name": "local_response_normalization",
+      "inputs": [
+        "a123"
+      ],
+      "outputs": [
+        "a124"
+      ],
+      "call_option": {
+        "out_spatial": [
+          54,
+          54
+        ],
+        "n": 1,
+        "out_size": 96,
+        "strides_x": [
+          279936,
+          54,
+          1,
+          2916
+        ],
+        "strides_y": [
+          279936,
+          54,
+          1,
+          2916
+        ],
+        "p_half_n": 2,
+        "p_k": 1.0,
+        "p_alpha": 1.9999999494757503e-05,
+        "p_minus_beta": -0.75
+      }
+    },
+    {
+      "entry_func_name": "max_pooling_2d",
+      "inputs": [
+        "a124"
+      ],
+      "outputs": [
+        "a125"
+      ],
+      "call_option": {
+        "in_spatial": [
+          54,
+          54
+        ],
+        "n": 1,
+        "out_size": 96,
+        "out_spatial": [
+          27,
+          27
+        ],
+        "strides_x": [
+          279936,
+          54,
+          1,
+          2916
+        ],
+        "strides_y": [
+          69984,
+          27,
+          1,
+          729
+        ],
+        "padding": [
+          0,
+          0
+        ],
+        "stride": [
+          2,
+          2
+        ],
+        "ksize": [
+          3,
+          3
+        ]
+      }
+    },
+    {
+      "entry_func_name": "convolution_2d",
+      "inputs": [
+        "a125",
+        "a105"
+      ],
+      "outputs": [
+        "a126"
+      ],
+      "call_option": {
+        "in_spatial": [
+          27,
+          27
+        ],
+        "n": 1,
+        "out_size": 256,
+        "in_size": 96,
+        "out_spatial": [
+          27,
+          27
+        ],
+        "strides_x": [
+          69984,
+          27,
+          1,
+          729
+        ],
+        "strides_w": [
+          2400,
+          5,
+          1,
+          25
+        ],
+        "strides_y": [
+          186624,
+          27,
+          1,
+          729
+        ],
+        "padding": [
+          2,
+          2
+        ],
+        "stride": [
+          1,
+          1
+        ],
+        "ksize": [
+          5,
+          5
+        ],
+        "dilation_rate": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_f88af157b6c9f620a9e433f4000a32858a55b8fef457d716eae1f048",
+      "inputs": [
+        "a106",
+        "a126",
+        "a127"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 729,
+        "9": 729,
+        "11": 256,
+        "13": 729
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a127",
+        "a128"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 186624
+      }
+    },
+    {
+      "entry_func_name": "local_response_normalization",
+      "inputs": [
+        "a128"
+      ],
+      "outputs": [
+        "a129"
+      ],
+      "call_option": {
+        "out_spatial": [
+          27,
+          27
+        ],
+        "n": 1,
+        "out_size": 256,
+        "strides_x": [
+          186624,
+          27,
+          1,
+          729
+        ],
+        "strides_y": [
+          186624,
+          27,
+          1,
+          729
+        ],
+        "p_half_n": 2,
+        "p_k": 1.0,
+        "p_alpha": 1.9999999494757503e-05,
+        "p_minus_beta": -0.75
+      }
+    },
+    {
+      "entry_func_name": "max_pooling_2d",
+      "inputs": [
+        "a129"
+      ],
+      "outputs": [
+        "a130"
+      ],
+      "call_option": {
+        "in_spatial": [
+          27,
+          27
+        ],
+        "n": 1,
+        "out_size": 256,
+        "out_spatial": [
+          13,
+          13
+        ],
+        "strides_x": [
+          186624,
+          27,
+          1,
+          729
+        ],
+        "strides_y": [
+          43264,
+          13,
+          1,
+          169
+        ],
+        "padding": [
+          0,
+          0
+        ],
+        "stride": [
+          2,
+          2
+        ],
+        "ksize": [
+          3,
+          3
+        ]
+      }
+    },
+    {
+      "entry_func_name": "convolution_2d",
+      "inputs": [
+        "a130",
+        "a107"
+      ],
+      "outputs": [
+        "a131"
+      ],
+      "call_option": {
+        "in_spatial": [
+          13,
+          13
+        ],
+        "n": 1,
+        "out_size": 384,
+        "in_size": 256,
+        "out_spatial": [
+          13,
+          13
+        ],
+        "strides_x": [
+          43264,
+          13,
+          1,
+          169
+        ],
+        "strides_w": [
+          2304,
+          3,
+          1,
+          9
+        ],
+        "strides_y": [
+          64896,
+          13,
+          1,
+          169
+        ],
+        "padding": [
+          1,
+          1
+        ],
+        "stride": [
+          1,
+          1
+        ],
+        "ksize": [
+          3,
+          3
+        ],
+        "dilation_rate": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_f88af157b6c9f620a9e433f4000a32858a55b8fef457d716eae1f048",
+      "inputs": [
+        "a108",
+        "a131",
+        "a132"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 169,
+        "9": 169,
+        "11": 384,
+        "13": 169
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a132",
+        "a133"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 64896
+      }
+    },
+    {
+      "entry_func_name": "convolution_2d",
+      "inputs": [
+        "a133",
+        "a109"
+      ],
+      "outputs": [
+        "a134"
+      ],
+      "call_option": {
+        "in_spatial": [
+          13,
+          13
+        ],
+        "n": 1,
+        "out_size": 384,
+        "in_size": 384,
+        "out_spatial": [
+          13,
+          13
+        ],
+        "strides_x": [
+          64896,
+          13,
+          1,
+          169
+        ],
+        "strides_w": [
+          3456,
+          3,
+          1,
+          9
+        ],
+        "strides_y": [
+          64896,
+          13,
+          1,
+          169
+        ],
+        "padding": [
+          1,
+          1
+        ],
+        "stride": [
+          1,
+          1
+        ],
+        "ksize": [
+          3,
+          3
+        ],
+        "dilation_rate": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_f88af157b6c9f620a9e433f4000a32858a55b8fef457d716eae1f048",
+      "inputs": [
+        "a110",
+        "a134",
+        "a135"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 169,
+        "9": 169,
+        "11": 384,
+        "13": 169
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a135",
+        "a136"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 64896
+      }
+    },
+    {
+      "entry_func_name": "convolution_2d",
+      "inputs": [
+        "a136",
+        "a111"
+      ],
+      "outputs": [
+        "a137"
+      ],
+      "call_option": {
+        "in_spatial": [
+          13,
+          13
+        ],
+        "n": 1,
+        "out_size": 256,
+        "in_size": 384,
+        "out_spatial": [
+          13,
+          13
+        ],
+        "strides_x": [
+          64896,
+          13,
+          1,
+          169
+        ],
+        "strides_w": [
+          3456,
+          3,
+          1,
+          9
+        ],
+        "strides_y": [
+          43264,
+          13,
+          1,
+          169
+        ],
+        "padding": [
+          1,
+          1
+        ],
+        "stride": [
+          1,
+          1
+        ],
+        "ksize": [
+          3,
+          3
+        ],
+        "dilation_rate": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_f88af157b6c9f620a9e433f4000a32858a55b8fef457d716eae1f048",
+      "inputs": [
+        "a112",
+        "a137",
+        "a138"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 169,
+        "9": 169,
+        "11": 256,
+        "13": 169
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a138",
+        "a139"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 43264
+      }
+    },
+    {
+      "entry_func_name": "max_pooling_2d",
+      "inputs": [
+        "a139"
+      ],
+      "outputs": [
+        "a140"
+      ],
+      "call_option": {
+        "in_spatial": [
+          13,
+          13
+        ],
+        "n": 1,
+        "out_size": 256,
+        "out_spatial": [
+          6,
+          6
+        ],
+        "strides_x": [
+          43264,
+          13,
+          1,
+          169
+        ],
+        "strides_y": [
+          9216,
+          6,
+          1,
+          36
+        ],
+        "padding": [
+          0,
+          0
+        ],
+        "stride": [
+          2,
+          2
+        ],
+        "ksize": [
+          3,
+          3
+        ]
+      }
+    },
+    {
+      "entry_func_name": "tensordot",
+      "inputs": [
+        "a140",
+        "a113"
+      ],
+      "outputs": [
+        "a141"
+      ],
+      "call_option": {
+        "reduction_size": 9216,
+        "stride_A": [
+          9216,
+          36,
+          6,
+          1
+        ],
+        "stride_B": [
+          9216,
+          1
+        ],
+        "stride_C": [
+          4096,
+          1
+        ],
+        "shape_C": [
+          1,
+          4096
+        ],
+        "stride_A_for_C_axes": [
+          9216,
+          0
+        ],
+        "stride_B_for_C_axes": [
+          0,
+          9216
+        ],
+        "shape_A_reduced_axes": [
+          256,
+          6,
+          6
+        ],
+        "stride_A_reduced_axes": [
+          36,
+          6,
+          1
+        ],
+        "stride_A_reduced_axes_for_whole": [
+          36,
+          6,
+          1
+        ],
+        "shape_B_reduced_axes": [
+          9216
+        ],
+        "stride_B_reduced_axes": [
+          1
+        ],
+        "stride_B_reduced_axes_for_whole": [
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_a390ad2e078fc68ac251d2f594dc0f96834a1e57429714605dbf3a02",
+      "inputs": [
+        "a114",
+        "a141",
+        "a142"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 4096
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a142",
+        "a143"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 4096
+      }
+    },
+    {
+      "entry_func_name": "tensordot",
+      "inputs": [
+        "a143",
+        "a115"
+      ],
+      "outputs": [
+        "a144"
+      ],
+      "call_option": {
+        "reduction_size": 4096,
+        "stride_A": [
+          4096,
+          1
+        ],
+        "stride_B": [
+          4096,
+          1
+        ],
+        "stride_C": [
+          4096,
+          1
+        ],
+        "shape_C": [
+          1,
+          4096
+        ],
+        "stride_A_for_C_axes": [
+          4096,
+          0
+        ],
+        "stride_B_for_C_axes": [
+          0,
+          4096
+        ],
+        "shape_A_reduced_axes": [
+          4096
+        ],
+        "stride_A_reduced_axes": [
+          1
+        ],
+        "stride_A_reduced_axes_for_whole": [
+          1
+        ],
+        "shape_B_reduced_axes": [
+          4096
+        ],
+        "stride_B_reduced_axes": [
+          1
+        ],
+        "stride_B_reduced_axes_for_whole": [
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_a390ad2e078fc68ac251d2f594dc0f96834a1e57429714605dbf3a02",
+      "inputs": [
+        "a116",
+        "a144",
+        "a145"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 4096
+      }
+    },
+    {
+      "entry_func_name": "relu_3693ec08de79c27ab35127ab0a10897afa2249f09efd879f2a8158d1",
+      "inputs": [
+        "a145",
+        "a146"
+      ],
+      "outputs": [],
+      "call_option": {
+        "5": 4096
+      }
+    },
+    {
+      "entry_func_name": "tensordot",
+      "inputs": [
+        "a146",
+        "a117"
+      ],
+      "outputs": [
+        "a147"
+      ],
+      "call_option": {
+        "reduction_size": 4096,
+        "stride_A": [
+          4096,
+          1
+        ],
+        "stride_B": [
+          4096,
+          1
+        ],
+        "stride_C": [
+          8,
+          1
+        ],
+        "shape_C": [
+          1,
+          8
+        ],
+        "stride_A_for_C_axes": [
+          4096,
+          0
+        ],
+        "stride_B_for_C_axes": [
+          0,
+          4096
+        ],
+        "shape_A_reduced_axes": [
+          4096
+        ],
+        "stride_A_reduced_axes": [
+          1
+        ],
+        "stride_A_reduced_axes_for_whole": [
+          1
+        ],
+        "shape_B_reduced_axes": [
+          4096
+        ],
+        "stride_B_reduced_axes": [
+          1
+        ],
+        "stride_B_reduced_axes_for_whole": [
+          1
+        ]
+      }
+    },
+    {
+      "entry_func_name": "elementwiseadd_a390ad2e078fc68ac251d2f594dc0f96834a1e57429714605dbf3a02",
+      "inputs": [
+        "a118",
+        "a147",
+        "a148"
+      ],
+      "outputs": [],
+      "call_option": {
+        "7": 8
+      }
+    },
+    {
+      "entry_func_name": "softmax",
+      "inputs": [
+        "a148"
+      ],
+      "outputs": [
+        "a120"
+      ],
+      "call_option": {
+        "N": 1,
+        "C": 8
+      }
+    }
+  ],
+  "weight_encoding": "eightbit",
+  "memory_layout": {
+    "static": {
+      "size": 61182496,
+      "allocations": {
+        "a119": {
+          "name": "a119",
+          "offset": 58348968,
+          "size": 301056
+        },
+        "a121": {
+          "name": "a121",
+          "offset": 58650024,
+          "size": 279936
+        },
+        "a122": {
+          "name": "a122",
+          "offset": 58929960,
+          "size": 279936
+        },
+        "a123": {
+          "name": "a123",
+          "offset": 59209896,
+          "size": 279936
+        },
+        "a124": {
+          "name": "a124",
+          "offset": 59489832,
+          "size": 279936
+        },
+        "a125": {
+          "name": "a125",
+          "offset": 60516264,
+          "size": 69984
+        },
+        "a126": {
+          "name": "a126",
+          "offset": 59769768,
+          "size": 186624
+        },
+        "a127": {
+          "name": "a127",
+          "offset": 59956392,
+          "size": 186624
+        },
+        "a128": {
+          "name": "a128",
+          "offset": 60143016,
+          "size": 186624
+        },
+        "a129": {
+          "name": "a129",
+          "offset": 60329640,
+          "size": 186624
+        },
+        "a130": {
+          "name": "a130",
+          "offset": 61062152,
+          "size": 43264
+        },
+        "a131": {
+          "name": "a131",
+          "offset": 60586248,
+          "size": 64896
+        },
+        "a132": {
+          "name": "a132",
+          "offset": 60651144,
+          "size": 64896
+        },
+        "a133": {
+          "name": "a133",
+          "offset": 60716040,
+          "size": 64896
+        },
+        "a134": {
+          "name": "a134",
+          "offset": 60780936,
+          "size": 64896
+        },
+        "a135": {
+          "name": "a135",
+          "offset": 60845832,
+          "size": 64896
+        },
+        "a136": {
+          "name": "a136",
+          "offset": 60910728,
+          "size": 64896
+        },
+        "a137": {
+          "name": "a137",
+          "offset": 61105416,
+          "size": 43264
+        },
+        "a138": {
+          "name": "a138",
+          "offset": 60975624,
+          "size": 43264
+        },
+        "a139": {
+          "name": "a139",
+          "offset": 61018888,
+          "size": 43264
+        },
+        "a140": {
+          "name": "a140",
+          "offset": 61148680,
+          "size": 9216
+        },
+        "a141": {
+          "name": "a141",
+          "offset": 61157896,
+          "size": 4096
+        },
+        "a142": {
+          "name": "a142",
+          "offset": 61161992,
+          "size": 4096
+        },
+        "a143": {
+          "name": "a143",
+          "offset": 61166088,
+          "size": 4096
+        },
+        "a144": {
+          "name": "a144",
+          "offset": 61170184,
+          "size": 4096
+        },
+        "a145": {
+          "name": "a145",
+          "offset": 61174280,
+          "size": 4096
+        },
+        "a146": {
+          "name": "a146",
+          "offset": 61178376,
+          "size": 4096
+        },
+        "a147": {
+          "name": "a147",
+          "offset": 61182480,
+          "size": 8
+        },
+        "a148": {
+          "name": "a148",
+          "offset": 61182488,
+          "size": 8
+        },
+        "a120": {
+          "name": "a120",
+          "offset": 61182472,
+          "size": 8
+        },
+        "a103": {
+          "name": "a103",
+          "offset": 0,
+          "size": 69696
+        },
+        "a104": {
+          "name": "a104",
+          "offset": 69696,
+          "size": 96
+        },
+        "a105": {
+          "name": "a105",
+          "offset": 69792,
+          "size": 614400
+        },
+        "a106": {
+          "name": "a106",
+          "offset": 684192,
+          "size": 256
+        },
+        "a107": {
+          "name": "a107",
+          "offset": 684448,
+          "size": 884736
+        },
+        "a108": {
+          "name": "a108",
+          "offset": 1569184,
+          "size": 384
+        },
+        "a109": {
+          "name": "a109",
+          "offset": 1569568,
+          "size": 1327104
+        },
+        "a110": {
+          "name": "a110",
+          "offset": 2896672,
+          "size": 384
+        },
+        "a111": {
+          "name": "a111",
+          "offset": 2897056,
+          "size": 884736
+        },
+        "a112": {
+          "name": "a112",
+          "offset": 3781792,
+          "size": 256
+        },
+        "a113": {
+          "name": "a113",
+          "offset": 3782048,
+          "size": 37748736
+        },
+        "a114": {
+          "name": "a114",
+          "offset": 41530784,
+          "size": 4096
+        },
+        "a115": {
+          "name": "a115",
+          "offset": 41534880,
+          "size": 16777216
+        },
+        "a116": {
+          "name": "a116",
+          "offset": 58312096,
+          "size": 4096
+        },
+        "a117": {
+          "name": "a117",
+          "offset": 58316192,
+          "size": 32768
+        },
+        "a118": {
+          "name": "a118",
+          "offset": 58348960,
+          "size": 8
+        }
+      }
+    },
+    "dynamic": {
+      "size": 0,
+      "allocations": {}
+    }
+  },
+  "placeholders": {},
+  "inputs": [
+    "a119"
+  ],
+  "outputs": [
+    "a120"
+  ],
+  "licenses": {
+    "webdnn": "(C) Machine Intelligence Laboratory (The University of Tokyo), MIT License"
+  }
+}

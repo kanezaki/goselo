@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>GOSELO demo</title>
+<style>
+    #message, #errorMessage {
+        background: #222222;
+        color: #cccccc;
+        height: 200px;
+        overflow: scroll;
+        padding: 10px;
+        font-family: 'Courier New', monospace;
+    }
+    #errorMessage {
+        background: #552222;
+    }
+    .controller div {
+        padding: 5px;
+    }
+    .preview .table>tbody>tr>td {
+        text-align: center;
+        vertical-align: middle;
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+<body>
+<div class="container">
+<div class="page-header">
+    <h1>GOSELO Simulator</h1>
+    <p>
+      This demo for our paper <a href="https://kanezaki.github.io/goselo/">GOSELO</a> uses the <a href="https://mil-tokyo.github.io/webdnn/">WebDNN</a> library, which fully runs on your web browser.
+      <br>
+      When you start the demo program, an agent (red circle) moves from a starting point to a goal (blue circle).
+    </p>
+
+    <h2>Get Started</h2>
+    <ol>
+      <li>Wait until the library is loaded. (This may take several minutes.)</li>
+      <li>Click "MAP" button and select a map image.</li>
+      <li>Click "INIT" button.</li>
+      <!--li>Click "NEXT STEP" button to move the agent one step forward.</li-->
+      <li>Click "PLAY" button to move the agent toward the goal.</li>
+      <li>Click "STOP" button to stop the agent.</li>
+    </ol>
+
+
+    
+</div>
+<section class="controller">
+    <div class="panel panel-default">
+        <!-- <div> -->
+        <!--     <input type="file" id="fileInput" name="file" accept="image/*" /> -->
+        <!-- </div> -->
+        <div>
+            <button id="mapButton" class="btn btn-primary">MAP</button>
+            <button id="loadButton" class="btn btn-primary">INIT</button>
+            <!--button id="nextStepButton" class="btn btn-primary">NEXT STEP</button-->
+            <button id="playButton" class="btn btn-primary">PLAY</button>
+            <button id="stopButton" class="btn btn-primary">STOP</button>
+        </div>
+    </div>
+</section>
+<section class="console">
+    <p id="message"></p>
+</section>
+<section class="preview">
+    <div class="panel panel-default">
+        <table class="table">
+        <tr>
+            <th>
+                <div class="caption">Map</div>
+            </th>
+            <!--
+            <th>
+                <div class="caption">im30 (map)</div>
+            </th>
+            <th>
+                <div class="caption">im31 (pathlog)</div>
+            </th>
+            -->
+            <th>
+                <div class="caption">Display</div>
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <canvas id="canvasInput"></canvas>
+            </td>
+            <!--
+            <td>
+                <canvas id="im30Output"></canvas>
+            </td>
+            <td>
+                <canvas id="im31Output"></canvas>
+            </td>
+            -->
+            <td>
+                <canvas id="imMapOutput"></canvas>
+            </td>
+        </tr>
+        </table>
+    </div>
+</section>
+
+<h2>Tested Environment</h2>
+<ul>
+  <li> Google Chrome for Mac - Ver. 63.0.3239.132 </li>
+  <li> Firefox for Mac - Ver. 57.0.4 </li>
+  <li> Safari for Mac - Ver. 11.0.2 </li>
+</ul>	
+    
+</div>
+<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="lib/opencv_utils.js" type="text/javascript"></script>
+<script src="lib/opencv_helper.js" type="text/javascript"></script>
+<script src="lib/webdnn.js" type="text/javascript"></script>
+<script src="index.js" type="text/javascript"></script>
+</body>
+</html>
