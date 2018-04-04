@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+  
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>GOSELO</title>
+    
+  </head>
+  
+  <body>
+    <div class="container" style="max-width: 900px;">
+      
+      
+      
+      <h5 class="text-center"><em><a href="http://www.ieee-ras.org/publications/ra-l">IEEE Robotics and Automation Letters (RA-L)</a>, presented in <a href="https://icra2018.org/">IEEE ICRA 2018</a></em></h5>
+      
+      
+      <h2 class="text-center">GOSELO: Goal-Directed Obstacle and Self-Location Map for Robot Navigation using Reactive Neural Networks</h2>
+      
+      
+      <div class="row">
+	
+	<div class="col-md-4">
+	  <h5 class="text-center"><a href="https://staff.aist.go.jp/kanezaki.asako/">Asako Kanezaki</a><br>AIST</h5>
+	</div>
+	<div class="col-md-4">
+	  <h5 class="text-center">Jirou Nitta<br>AIST</h5>
+	</div>
+	<div class="col-md-4">
+	  <h5 class="text-center"><a href="http://www.dh.aist.go.jp/en/members/sasaki.php">Yoko Sasaki</a><br>AIST</h5>
+	</div>
+	
+      </div>
+
+      <div class="row">
+	<div class="col-md-5">
+	  <p class="text-center">
+	    <img src="kanez1-2783400-large.gif" height="240px" class="img-responsive">
+	  </p>
+	</div>
+	<div class="col-md-7">
+	  <p class="text-center">
+	    <img src="kanez2-2783400-large.gif" height="240px" class="img-responsive">
+	  </p>
+	</div>
+      </div>
+
+
+
+<h3>Abstract</h3>
+<div class="row">
+    <div class="col-md-12">
+      <p>Robot navigation using deep neural networks has been drawing a great deal of attention. Although reactive neural networks easily learn expert behaviors and are computationally efficient, they suffer from generalization of policies learned in specific environments. As such, reinforcement learning and value iteration approaches for learning generalized policies have been proposed. However, these approaches are more costly. In this letter, we tackle the problem of learning reactive neural networks that are applicable to general environments. The key concept is to crop, rotate, and rescale an obstacle map according to the goal location and the agent's current location so that the map representation will be better correlated with self-movement in the general navigation task, rather than the layout of the environment. Furthermore, in addition to the obstacle map, we input a map of visited locations that contains the movement history of the agent, in order to avoid failures that the agent travels back and forth repeatedly over the same location. Experimental results reveal that the proposed network outperforms the state-of-the-art value iteration network in the grid-world navigation task. We also demonstrate that the proposed model can be well generalized to unseen obstacles and unknown terrain. Finally, we demonstrate that the proposed system enables a mobile robot to successfully navigate in a real dynamic environment.
+      </p>
+    </div>
+</div>
+
+
+<h3>Publication</h3>
+<div class="row">
+    <div class="col-md-12">
+      <ul>
+	<LI><U>Asako Kanezaki</U>, Jirou Nitta, and Yoko Sasaki.
+	  <BR>GOSELO: Goal-Directed Obstacle and Self-Location Map for Robot Navigation using Reactive Neural Networks.
+	  <BR><I>IEEE Robotics and Automation Letters (RA-L)</I>, Vol.3, Issue 2, pp.696-703, 2018. (<b>presented in ICRA'18</b>)
+	  <BR><a href="https://doi.org/10.1109/LRA.2017.2783400">https://doi.org/10.1109/LRA.2017.2783400</a>
+	</LI>
+      </ul>
+    </div>
+</div>
+
+<h3><a href="goselodemo/index.html">Demo</a></h3>
+<div class="row">
+    <div class="col-md-12">
+      This <a href="goselodemo/index.html">demo</a> uses the <a href="https://mil-tokyo.github.io/webdnn/">WebDNN</a> library, which fully runs on your web browser.
+      <br>
+      Tested on:
+      <ul>
+	<li> Google Chrome for Mac - Ver. 63.0.3239.132 </li>
+	<li> Firefox for Mac - Ver. 57.0.4 </li>
+	<li> Safari for Mac - Ver. 11.0.2 </li>
+      </ul>	
+    </div>
+</div>
+
+<h3>Video</h3>
+<video controls class="img-responsive">
+    <source src="GOSELO.mp4">
+</video>
+
+<h3>BibTeX</h3>
+<div class="row">
+    <div class="col-md-12">
+      <pre>@article{kanezaki2018_goselo,
+	author={Asako Kanezaki and Jirou Nitta and Yoko Sasaki},
+	journal={IEEE Robotics and Automation Letters},
+	title={GOSELO: Goal-Directed Obstacle and Self-Location Map for Robot Navigation Using Reactive Neural Networks},
+	year={2018},
+	volume={3},
+	number={2},
+	pages={696-703},
+	keywords={learning (artificial intelligence);mobile robots;navigation;neurocontrollers;path planning;deep neural networks;general environments;general navigation task;goal location;grid-world navigation task;map representation;obstacle map;reactive neural networks;reinforcement learning;robot navigation;visited locations;Agriculture;Computational modeling;Navigation;Neural networks;Path planning;Robots;Deep learning in robotics and automation;recognition;visual-based navigation},
+	doi={10.1109/LRA.2017.2783400},
+	ISSN={},
+	month={April},}
+</pre>
+    </div>
+</div>
+
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+
+</html>
